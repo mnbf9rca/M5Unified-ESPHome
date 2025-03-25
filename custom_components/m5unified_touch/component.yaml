@@ -1,0 +1,14 @@
+esphome:
+  name: m5unified_touch
+
+files:
+  - m5unified_touch.cpp
+  - m5unified_touch.h
+  - ../../../m5unified/src/utility/Touch_Class.cpp
+  - ../../../m5unified/src/utility/Touch_Class.hpp
+
+includes:
+  - "../../../m5unified/src"
+
+dependencies:
+  idf: ">=5.0.0"
