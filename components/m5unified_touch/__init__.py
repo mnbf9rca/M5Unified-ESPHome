@@ -12,6 +12,9 @@ CODEOWNER = ["@mnbf9rca"]
 DEPENDENCIES = ["m5unified"]
 AUTO_LOAD = ["touchscreen"]
 
+# Register this as a touchscreen platform
+PLATFORM_SCHEMA = touchscreen.TOUCHSCREEN_PLATFORM_SCHEMA.extend({})
+
 def _log_component_info():
     frame = inspect.currentframe()
     caller = inspect.getouterframes(frame)[1]
@@ -47,18 +50,22 @@ CONF_M5UNIFIED_TOUCH_ID = "m5unified_touch_id"
 _LOGGER.debug("=== Creating CONFIG_SCHEMA ===")
 try:
     assert hasattr(touchscreen, 'TOUCHSCREEN_SCHEMA'), "TOUCHSCREEN_SCHEMA not found"
-    CONFIG_SCHEMA = cv.All(
-        touchscreen.TOUCHSCREEN_SCHEMA.extend(
-            {
-                cv.GenerateID(): cv.declare_id(M5UnifiedTouch),
-            }
-        ).extend(cv.COMPONENT_SCHEMA),
-        cv.only_with_arduino,
+    CONFIG_SCHEMA = touchscreen.touchscreen_ns.namespace('m5unified_touch').class_('M5UnifiedTouch', touchscreen.Touchscreen).extend(
+        touchscreen.TOUCHSCREEN_SCHEMA.extend({
+            cv.GenerateID(): cv.declare_id(M5UnifiedTouch),
+        })
     )
     _LOGGER.debug(f"CONFIG_SCHEMA created: {CONFIG_SCHEMA}")
 except Exception as e:
     _LOGGER.error(f"Error creating CONFIG_SCHEMA: {e}")
     raise
+
+# Register as a touchscreen platform
+touchscreen.register_touchscreen(
+    'M5UnifiedTouch',
+    M5UnifiedTouch,
+    CONFIG_SCHEMA
+)
 
 async def to_code(config):
     _LOGGER.debug(f"=== to_code called with config ===")
@@ -66,10 +73,13 @@ async def to_code(config):
     _LOGGER.debug(f"Config contents: {config}")
     
     try:
+        _LOGGER.debug("Creating variable...")
+        var = cg.new_Pvariable(config[CONF_ID])
+        _LOGGER.debug(f"Variable created: {var}")
+
         _LOGGER.debug("Registering touchscreen...")
-        var = await touchscreen.register_touchscreen(config)
-        assert var is not None, "register_touchscreen returned None"
-        _LOGGER.debug(f"Touchscreen registered: {var}")
+        await touchscreen.register_touchscreen(var, config)
+        _LOGGER.debug(f"Touchscreen registered")
         
         _LOGGER.debug("Registering component...")
         await cg.register_component(var, config)
