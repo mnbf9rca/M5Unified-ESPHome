@@ -1,0 +1,3 @@
+[submodule "m5unified"]
+	path = m5unified
+	url = https://github.com/m5stack/M5Unified.git
