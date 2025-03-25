@@ -1,19 +1,18 @@
 #pragma once
 
-#include "esphome/core/component.h"
 #include "esphome/components/touchscreen/touchscreen.h"
-#include "../../../m5unified/src/utility/Touch_Class.hpp"
+#include "esphome/components/m5unified/m5unified.h"
 
 namespace esphome {
 namespace m5unified_touch {
 
-class M5UnifiedTouch : public touchscreen::Touchscreen {
+class M5UnifiedTouchPlatform : public touchscreen::TouchScreenPlatform {
  public:
   void setup() override;
-  void loop() override;
+  bool get_touch_data(uint16_t *x, uint16_t *y, bool *touched) override;
 
  protected:
-  m5::Touch_Class driver_;
+  M5Unified *m5unified_{nullptr};
 };
 
 }  // namespace m5unified_touch

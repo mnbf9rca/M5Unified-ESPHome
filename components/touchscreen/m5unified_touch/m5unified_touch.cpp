@@ -1,22 +1,32 @@
-#include "m5unified_touch.h"
+#include "m5unified_touch_platform.h"
+#include "esphome/core/log.h"
 
 namespace esphome {
 namespace m5unified_touch {
 
-void M5UnifiedTouch::setup() {
-  driver_.begin(nullptr);  // Initialize without display for now
+static const char *TAG = "m5unified_touch";
+
+void M5UnifiedTouchPlatform::setup() {
+  ESP_LOGCONFIG(TAG, "Setting up M5Unified Touch Platform...");
+  this->m5unified_ = global_m5unified;
 }
 
-void M5UnifiedTouch::loop() {
-  uint32_t current_time = millis();
-  driver_.update(current_time);
-
-  if (driver_.getCount() > 0) {
-    const auto& detail = driver_.getDetail(0);
-    this->send_touch(detail.x, detail.y);
-  } else {
-    this->send_release();
+bool M5UnifiedTouchPlatform::get_touch_data(uint16_t *x, uint16_t *y, bool *touched) {
+  if (this->m5unified_ == nullptr || !this->m5unified_->touch.getCount()) {
+    *touched = false;
+    return true;
   }
+
+  m5::touch_point_t tp;
+  if (!this->m5unified_->touch.getDetail(&tp)) {
+    *touched = false;
+    return true;
+  }
+
+  *x = tp.x;
+  *y = tp.y;
+  *touched = true;
+  return true;
 }
 
 }  // namespace m5unified_touch
