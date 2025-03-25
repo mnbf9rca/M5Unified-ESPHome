@@ -12,60 +12,14 @@ CODEOWNER = ["@mnbf9rca"]
 DEPENDENCIES = ["m5unified"]
 AUTO_LOAD = ["touchscreen"]
 
-# Register this as a touchscreen platform
-PLATFORM_SCHEMA = touchscreen.TOUCHSCREEN_PLATFORM_SCHEMA.extend({})
+# Define the component namespace and class
+m5unified_touch_ns = cg.esphome_ns.namespace("m5unified_touch")
+M5UnifiedTouch = m5unified_touch_ns.class_("M5UnifiedTouch", touchscreen.Touchscreen)
 
-def _log_component_info():
-    frame = inspect.currentframe()
-    caller = inspect.getouterframes(frame)[1]
-    _LOGGER.debug(f"Called from: {caller.filename}:{caller.lineno}")
-    _LOGGER.debug(f"Available touchscreen components: {dir(touchscreen)}")
-    _LOGGER.debug(f"Touchscreen base path: {touchscreen.__file__}")
-
-_LOGGER.debug("=== Starting m5unified_touch initialization ===")
-_log_component_info()
-
-try:
-    _LOGGER.debug("Creating namespace...")
-    assert hasattr(cg, 'esphome_ns'), "esphome_ns not found in codegen"
-    m5unified_touch_ns = cg.esphome_ns.namespace("m5unified_touch")
-    _LOGGER.debug(f"Namespace created: {m5unified_touch_ns}")
-    
-    _LOGGER.debug("Creating M5UnifiedTouch class...")
-    assert hasattr(touchscreen, 'Touchscreen'), "Touchscreen base class not found"
-    M5UnifiedTouch = m5unified_touch_ns.class_("M5UnifiedTouch", touchscreen.Touchscreen)
-    _LOGGER.debug(f"M5UnifiedTouch class created: {M5UnifiedTouch}")
-    
-    # Verify the class was created with correct inheritance
-    _LOGGER.debug(f"M5UnifiedTouch parent classes: {M5UnifiedTouch.__bases__ if hasattr(M5UnifiedTouch, '__bases__') else 'No bases found'}")
-    
-except Exception as e:
-    _LOGGER.error(f"Error during initialization: {e}")
-    _LOGGER.error(f"Error type: {type(e)}")
-    _LOGGER.error(f"Error context: {vars()}")
-    raise
-
-CONF_M5UNIFIED_TOUCH_ID = "m5unified_touch_id"
-
-_LOGGER.debug("=== Creating CONFIG_SCHEMA ===")
-try:
-    assert hasattr(touchscreen, 'TOUCHSCREEN_SCHEMA'), "TOUCHSCREEN_SCHEMA not found"
-    CONFIG_SCHEMA = touchscreen.touchscreen_ns.namespace('m5unified_touch').class_('M5UnifiedTouch', touchscreen.Touchscreen).extend(
-        touchscreen.TOUCHSCREEN_SCHEMA.extend({
-            cv.GenerateID(): cv.declare_id(M5UnifiedTouch),
-        })
-    )
-    _LOGGER.debug(f"CONFIG_SCHEMA created: {CONFIG_SCHEMA}")
-except Exception as e:
-    _LOGGER.error(f"Error creating CONFIG_SCHEMA: {e}")
-    raise
-
-# Register as a touchscreen platform
-touchscreen.register_touchscreen(
-    'M5UnifiedTouch',
-    M5UnifiedTouch,
-    CONFIG_SCHEMA
-)
+# Define configuration schema
+CONFIG_SCHEMA = touchscreen.TOUCHSCREEN_SCHEMA.extend({
+    cv.GenerateID(): cv.declare_id(M5UnifiedTouch),
+})
 
 async def to_code(config):
     _LOGGER.debug(f"=== to_code called with config ===")
